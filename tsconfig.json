@@ -19,6 +19,9 @@
     "baseUrl": "./",
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
+    "types": [
+      "node"
+    ],
     "paths": {
       "@/*": [
         "src/*"
@@ -26,7 +29,8 @@
     }
   },
   "include": [
-    "src/**/*"
+    "src/**/*",
+    "prisma/**/*"
   ],
   "exclude": [
     "node_modules",

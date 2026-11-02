@@ -2,11 +2,17 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-
-// Seller Modules — src/modules/seller/* banne par yahan import karna
+import { DatabaseModule } from './database/database.module';
+import { SellerAuthModule } from './modules/seller/auth/auth.module';
+import { SellerKycModule } from './modules/seller/kyc/kyc.module';
 
 @Module({
-  imports: [ConfigModule.forRoot({ isGlobal: true })],
+  imports: [
+    ConfigModule.forRoot({ isGlobal: true }),
+    DatabaseModule,
+    SellerAuthModule,
+    SellerKycModule,
+  ],
   controllers: [AppController],
   providers: [AppService],
 })

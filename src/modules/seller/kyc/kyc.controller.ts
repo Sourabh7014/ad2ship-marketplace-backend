@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   Post,
@@ -35,6 +36,18 @@ export class SellerKycController {
       throw new ForbiddenException('No seller account associated with user');
     }
     return this.kycService.saveDocument(user.seller.id, dto);
+  }
+
+  @UseGuards(SellerJwtAuthGuard)
+  @Delete('documents/:documentType')
+  async removeDocument(
+    @CurrentUser() user: any,
+    @Param('documentType') documentType: string,
+  ) {
+    if (!user.seller?.id) {
+      throw new ForbiddenException('No seller account associated with user');
+    }
+    return this.kycService.removeDocument(user.seller.id, documentType);
   }
 
   @UseGuards(SellerJwtAuthGuard)

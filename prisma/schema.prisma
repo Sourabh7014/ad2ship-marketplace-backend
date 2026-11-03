@@ -27,9 +27,9 @@ model User {
   phone           String?      @unique
   passwordHash    String       @map("password_hash")
   role            RoleEnum     @default(user)
-  status          Int          @default(0) @db.SmallInt // 0: active, 1: inactive
   emailVerifiedAt DateTime?    @map("email_verified_at")
   phoneVerifiedAt DateTime?    @map("phone_verified_at")
+  status          Int          @default(0) @db.SmallInt // 0: active, 1: inactive
   softDelete      Int          @default(0) @map("soft_delete") @db.SmallInt // 0: false, 1: true
   createdAt       DateTime     @default(now()) @map("created_at")
   updatedAt       DateTime     @default(now()) @updatedAt @map("updated_at")
@@ -139,14 +139,14 @@ model Seller {
   slug             String    @unique
   email            String    @unique
   phone            String
-  status           Int       @default(0) @db.SmallInt // 0: active, 1: inactive
   onboardingStatus Int       @default(1) @map("onboarding_status") @db.SmallInt // 1: DRAFT, 2: SUBMITTED, 3: UNDER_REVIEW, 4: NEEDS_CORRECTION, 5: APPROVED, 6: REJECTED
-  riskStatus       String    @default("NORMAL") @map("risk_status") // NORMAL, MEDIUM, HIGH
+  onboardingFee    Decimal   @default(0.00) @map("onboarding_fee") @db.Decimal(10, 2)
   businessType     String?   @map("business_type") @db.VarChar(50)
   category         String?   @map("category") @db.VarChar(100)
   pan              String?   @map("pan") @db.VarChar(20)
   gstin            String?   @map("gstin") @db.VarChar(20)
-  onboardingFee    Decimal   @default(0.00) @map("onboarding_fee") @db.Decimal(10, 2)
+  riskStatus       String    @default("NORMAL") @map("risk_status") // NORMAL, MEDIUM, HIGH
+  status           Int       @default(0) @db.SmallInt // 0: active, 1: inactive
   softDelete       Int       @default(0) @map("soft_delete") @db.SmallInt // 0: false, 1: true
   createdAt        DateTime  @default(now()) @map("created_at")
   updatedAt        DateTime  @default(now()) @updatedAt @map("updated_at")
@@ -527,4 +527,22 @@ model InventoryBalance {
 
   @@unique([sellerListingId, warehouseId])
   @@map("inventory_balances")
+}
+
+model ZoneMapping {
+  id             Int     @id @default(autoincrement())
+  partnerId      Int?    @map("partner_id")
+  courierPartner String? @map("courier_partner") @db.VarChar
+  city           String? @db.VarChar
+  state          String? @db.VarChar
+  hasCod         String? @map("has_cod") @db.VarChar
+  hasDg          String? @map("has_dg") @db.VarChar
+  hasPrepaid     String? @map("has_prepaid") @db.VarChar
+  hasReverse     String? @map("has_reverse") @db.VarChar
+  pickerZone     String? @map("picker_zone") @db.VarChar
+  pincode        String? @db.VarChar
+  routingCode    String? @map("routing_code") @db.VarChar
+  codLimit       String? @map("cod_limit") @db.VarChar
+
+  @@map("zone_mapping")
 }

@@ -42,7 +42,8 @@ export class HttpExceptionFilter implements ExceptionFilter {
       this.logger.error(exception.stack);
     }
 
-    response.status(status).json({
+    // Return 200 OK with standard status: false payload so client does not trigger HTTP error alerts
+    response.status(HttpStatus.OK).json({
       status: false,
       message,
       data: null,

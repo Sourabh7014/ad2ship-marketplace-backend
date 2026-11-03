@@ -12,7 +12,7 @@ import { SellerOnboardingStatus } from '@/common/enums/seller-status.enum';
 
 @Injectable()
 export class SellerKycService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) { }
 
   async saveProfile(sellerId: string, dto: KycProfileDto) {
     const seller = await this.prisma.seller.findUnique({
@@ -106,6 +106,27 @@ export class SellerKycService {
         fileKey: doc.fileKey,
         verificationStatus: doc.verificationStatus,
       },
+    };
+  }
+
+  async removeDocument(sellerId: string, documentType: string) {
+    const existing = await this.prisma.sellerDocument.findFirst({
+      where: {
+        sellerId: BigInt(sellerId),
+        documentType,
+      },
+    });
+
+    if (!existing) {
+      throw new NotFoundException('Document not found');
+    }
+
+    await this.prisma.sellerDocument.delete({
+      where: { id: existing.id },
+    });
+
+    return {
+      message: `${documentType} removed successfully`,
     };
   }
 
@@ -282,14 +303,15 @@ export class SellerKycService {
       })),
       bankAccount: seller.bankAccounts[0]
         ? {
-            id: seller.bankAccounts[0].id.toString(),
-            beneficiaryName: seller.bankAccounts[0].beneficiaryName,
-            bankName: seller.bankAccounts[0].bankName,
-            accountNumberMasked: seller.bankAccounts[0].accountNumberMasked,
-            accountType: seller.bankAccounts[0].accountType || 'CURRENT',
-            ifscCode: seller.bankAccounts[0].ifscCode,
-            verificationStatus: seller.bankAccounts[0].verificationStatus,
-          }
+          id: seller.bankAccounts[0].id.toString(),
+          beneficiaryName: seller.bankAccounts[0].beneficiaryName,
+          bankName: seller.bankAccounts[0].bankName,
+          accountNumber: seller.bankAccounts[0].accountNumberEncrypted,
+          accountNumberMasked: seller.bankAccounts[0].accountNumberMasked,
+          accountType: seller.bankAccounts[0].accountType || 'CURRENT',
+          ifscCode: seller.bankAccounts[0].ifscCode,
+          verificationStatus: seller.bankAccounts[0].verificationStatus,
+        }
         : null,
       addresses: seller.addresses.map((a) => ({
         id: a.id.toString(),
@@ -354,12 +376,59 @@ export class SellerKycService {
   }
 
   async getPincodeInfo(pincode: string) {
-    // Basic serviceability lookup - extensible to logistics APIs (Delhivery/Shiprocket)
+    const cleanPincode = String(pincode || '').trim();
+    if (!cleanPincode || cleanPincode.length < 6) {
+      return {
+        pincode: cleanPincode,
+        city: '',
+        state: '',
+        serviceable: false,
+        country: 'India',
+      };
+    }
+
+    try {
+      const records: any[] = await this.prisma.$queryRawUnsafe(
+        `SELECT city, state, picker_zone FROM zone_mapping WHERE pincode = $1 AND city IS NOT NULL AND state IS NOT NULL LIMIT 1`,
+        cleanPincode,
+      );
+
+      if (records && records.length > 0 && records[0]) {
+        const toTitleCase = (str: string) => {
+          if (!str) return '';
+          return str
+            .toLowerCase()
+            .split(' ')
+            .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+            .join(' ');
+        };
+
+        return {
+          pincode: cleanPincode,
+          city: toTitleCase(records[0].city),
+          state: toTitleCase(records[0].state),
+          pickerZone: records[0].picker_zone || null,
+          serviceable: true,
+          country: 'India',
+        };
+      }
+    } catch (err: any) {
+      // In case zone_mapping table query fails
+      return {
+        pincode: cleanPincode,
+        city: '',
+        state: '',
+        serviceable: false,
+        country: 'India',
+      };
+    }
+
     return {
-      pincode,
-      serviceable: true,
+      pincode: cleanPincode,
+      city: '',
+      state: '',
+      serviceable: false,
       country: 'India',
     };
   }
 }
-

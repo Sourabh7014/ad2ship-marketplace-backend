@@ -29,7 +29,11 @@ export class SellerAuthService {
     });
 
     if (existingUser) {
-      throw new ConflictException('A user with this email or phone already exists');
+      return {
+        status: false,
+        message: 'A user with this email or phone already exists',
+        data: null,
+      };
     }
 
     // 2. Generate slug from display name or user name
@@ -141,29 +145,53 @@ export class SellerAuthService {
     });
 
     if (!user) {
-      throw new UnauthorizedException('Invalid email or password');
+      return {
+        status: false,
+        message: 'Invalid email or password',
+        data: null,
+      };
     }
 
     if (user.status === 1) {
-      throw new UnauthorizedException('Your account is inactive. Please contact support.');
+      return {
+        status: false,
+        message: 'Your account is inactive. Please contact support.',
+        data: null,
+      };
     }
 
     const isMatch = await bcrypt.compare(dto.password, user.passwordHash);
     if (!isMatch) {
-      throw new UnauthorizedException('Invalid email or password');
+      return {
+        status: false,
+        message: 'Invalid email or password',
+        data: null,
+      };
     }
 
     const sellerUser = user.sellerUsers[0];
     if (!sellerUser) {
-      throw new UnauthorizedException('User is not associated with any seller account');
+      return {
+        status: false,
+        message: 'User is not associated with any seller account',
+        data: null,
+      };
     }
 
     const seller = sellerUser.seller;
     if (seller.status !== SellerStatus.ACTIVE) {
-      throw new UnauthorizedException('Seller account is suspended or inactive');
+      return {
+        status: false,
+        message: 'Seller account is suspended or inactive',
+        data: null,
+      };
     }
     if (seller.softDelete === SoftDeleteStatus.DELETED) {
-      throw new UnauthorizedException('Seller account has been deleted');
+      return {
+        status: false,
+        message: 'Seller account has been deleted',
+        data: null,
+      };
     }
 
     const token = this.jwtService.sign({
@@ -286,12 +314,18 @@ export class SellerAuthService {
     });
 
     if (!user) {
-      throw new UnauthorizedException('User not found');
+      return {
+        status: false,
+        message: 'User not found',
+      };
     }
 
     const isMatch = await bcrypt.compare(dto.oldPassword, user.passwordHash);
     if (!isMatch) {
-      throw new BadRequestException('Current password does not match');
+      return {
+        status: false,
+        message: 'Current password does not match',
+      };
     }
 
     const passwordHash = await bcrypt.hash(dto.newPassword, 10);
@@ -300,7 +334,10 @@ export class SellerAuthService {
       data: { passwordHash },
     });
 
-    return { message: 'Password changed successfully' };
+    return {
+      status: true,
+      message: 'Password changed successfully',
+    };
   }
 
   async checkOldPassword(userId: string, dto: CheckOldPasswordDto) {

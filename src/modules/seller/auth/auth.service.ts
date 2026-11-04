@@ -160,6 +160,14 @@ export class SellerAuthService {
       };
     }
 
+    if (!user.passwordHash) {
+      return {
+        status: false,
+        message: 'Password is not set for this account. Please login with OTP or set a password.',
+        data: null,
+      };
+    }
+
     const isMatch = await bcrypt.compare(dto.password, user.passwordHash);
     if (!isMatch) {
       return {
@@ -320,6 +328,13 @@ export class SellerAuthService {
       };
     }
 
+    if (!user.passwordHash) {
+      return {
+        status: false,
+        message: 'No password is set for this account',
+      };
+    }
+
     const isMatch = await bcrypt.compare(dto.oldPassword, user.passwordHash);
     if (!isMatch) {
       return {
@@ -345,7 +360,7 @@ export class SellerAuthService {
       where: { id: BigInt(userId) },
     });
 
-    if (!user) {
+    if (!user || !user.passwordHash) {
       return { valid: false };
     }
 

@@ -22,10 +22,13 @@ enum RoleEnum {
 
 model User {
   id              BigInt       @id @default(autoincrement())
-  name            String
-  email           String       @unique
+  name            String?      @default("")
+  email           String?      @unique
   phone           String?      @unique
-  passwordHash    String       @map("password_hash")
+  passwordHash    String?      @map("password_hash")
+  gender          Int?         @db.SmallInt // 1: MALE, 2: FEMALE, 3: OTHER
+  dateOfBirth     DateTime?    @map("date_of_birth")
+  alternatePhone  String?      @map("alternate_phone")
   role            RoleEnum     @default(user)
   emailVerifiedAt DateTime?    @map("email_verified_at")
   phoneVerifiedAt DateTime?    @map("phone_verified_at")
@@ -35,11 +38,73 @@ model User {
   updatedAt       DateTime     @default(now()) @updatedAt @map("updated_at")
   deletedAt       DateTime?    @map("deleted_at")
 
-  userRoles       UserRole[]
-  sellerUsers     SellerUser[]
-  refreshTokens   RefreshToken[]
+  userRoles            UserRole[]
+  sellerUsers          SellerUser[]
+  refreshTokens        RefreshToken[]
+  addresses            UserAddress[]
+  otps                 OtpVerification[]
+  personalAccessTokens PersonalAccessToken[]
 
   @@map("users")
+}
+
+model UserAddress {
+  id           BigInt    @id @default(autoincrement())
+  userId       BigInt    @map("user_id")
+  name         String    @db.VarChar(150)
+  phone        String    @db.VarChar(20)
+  pincode      String    @db.VarChar(10)
+  addressLine1 String    @map("address_line1") @db.VarChar(255)
+  addressLine2 String?   @map("address_line2") @db.VarChar(255)
+  landmark     String?   @db.VarChar(255)
+  city         String    @db.VarChar(100)
+  state        String    @db.VarChar(100)
+  country      String    @default("IN") @db.VarChar(10)
+  addressType  String    @default("HOME") @map("address_type") @db.VarChar(20) // HOME, WORK, OTHER
+  isDefault    Boolean   @default(false) @map("is_default")
+  status       Int       @default(0) @db.SmallInt // 0: active, 1: inactive
+  softDelete   Int       @default(0) @map("soft_delete") @db.SmallInt // 0: false, 1: true
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @default(now()) @updatedAt @map("updated_at")
+  deletedAt    DateTime? @map("deleted_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("user_addresses")
+}
+
+model OtpVerification {
+  id         BigInt    @id @default(autoincrement())
+  phone      String    @db.VarChar(20)
+  otp        String    @db.VarChar(10)
+  purpose    String    @default("LOGIN_SIGNUP") @db.VarChar(50) // LOGIN_SIGNUP, DELETE_ACCOUNT, etc.
+  expiresAt  DateTime  @map("expires_at")
+  isVerified Boolean   @default(false) @map("is_verified")
+  createdAt  DateTime  @default(now()) @map("created_at")
+  updatedAt  DateTime  @default(now()) @updatedAt @map("updated_at")
+  userId     BigInt?   @map("user_id")
+
+  user User? @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([phone, purpose])
+  @@map("otp_verifications")
+}
+
+model PersonalAccessToken {
+  id        BigInt    @id @default(autoincrement())
+  userId    BigInt    @map("user_id")
+  token     String    @db.Text
+  expiresAt DateTime  @map("expires_at")
+  status    Int       @default(0) @db.SmallInt // 0: ACTIVE, 1: EXPIRED/REVOKED
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @default(now()) @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([token])
+  @@map("personal_access_tokens")
 }
 
 model Role {

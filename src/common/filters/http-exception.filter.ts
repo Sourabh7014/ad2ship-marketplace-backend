@@ -45,10 +45,9 @@ export class HttpExceptionFilter implements ExceptionFilter {
     // Return 200 OK with standard status: false payload so client does not trigger HTTP error alerts
     response.status(HttpStatus.OK).json({
       status: false,
+      statusCode: 200,
       message,
       data: null,
-      statusCode: status,
-      timestamp: new Date().toISOString(),
     });
   }
 }

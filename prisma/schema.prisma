@@ -21,22 +21,22 @@ enum RoleEnum {
 }
 
 model User {
-  id              BigInt       @id @default(autoincrement())
-  name            String?      @default("")
-  email           String?      @unique
-  phone           String?      @unique
-  passwordHash    String?      @map("password_hash")
-  gender          Int?         @db.SmallInt // 1: MALE, 2: FEMALE, 3: OTHER
-  dateOfBirth     DateTime?    @map("date_of_birth")
-  alternatePhone  String?      @map("alternate_phone")
-  role            RoleEnum     @default(user)
-  emailVerifiedAt DateTime?    @map("email_verified_at")
-  phoneVerifiedAt DateTime?    @map("phone_verified_at")
-  status          Int          @default(0) @db.SmallInt // 0: active, 1: inactive
-  softDelete      Int          @default(0) @map("soft_delete") @db.SmallInt // 0: false, 1: true
-  createdAt       DateTime     @default(now()) @map("created_at")
-  updatedAt       DateTime     @default(now()) @updatedAt @map("updated_at")
-  deletedAt       DateTime?    @map("deleted_at")
+  id              BigInt    @id @default(autoincrement())
+  name            String?   @default("")
+  email           String?   @unique
+  phone           String?   @unique
+  passwordHash    String?   @map("password_hash")
+  gender          Int?      @db.SmallInt // 1: MALE, 2: FEMALE, 3: OTHER
+  dateOfBirth     DateTime? @map("date_of_birth")
+  alternatePhone  String?   @map("alternate_phone")
+  role            RoleEnum  @default(user)
+  emailVerifiedAt DateTime? @map("email_verified_at")
+  phoneVerifiedAt DateTime? @map("phone_verified_at")
+  status          Int       @default(0) @db.SmallInt // 0: active, 1: inactive
+  softDelete      Int       @default(0) @map("soft_delete") @db.SmallInt // 0: false, 1: true
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @default(now()) @updatedAt @map("updated_at")
+  deletedAt       DateTime? @map("deleted_at")
 
   userRoles            UserRole[]
   sellerUsers          SellerUser[]
@@ -75,15 +75,15 @@ model UserAddress {
 }
 
 model OtpVerification {
-  id         BigInt    @id @default(autoincrement())
-  phone      String    @db.VarChar(20)
-  otp        String    @db.VarChar(10)
-  purpose    String    @default("LOGIN_SIGNUP") @db.VarChar(50) // LOGIN_SIGNUP, DELETE_ACCOUNT, etc.
-  expiresAt  DateTime  @map("expires_at")
-  isVerified Boolean   @default(false) @map("is_verified")
-  createdAt  DateTime  @default(now()) @map("created_at")
-  updatedAt  DateTime  @default(now()) @updatedAt @map("updated_at")
-  userId     BigInt?   @map("user_id")
+  id         BigInt   @id @default(autoincrement())
+  phone      String   @db.VarChar(20)
+  otp        String   @db.VarChar(10)
+  purpose    String   @default("LOGIN_SIGNUP") @db.VarChar(50) // LOGIN_SIGNUP, DELETE_ACCOUNT, etc.
+  expiresAt  DateTime @map("expires_at")
+  isVerified Boolean  @default(false) @map("is_verified")
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @default(now()) @updatedAt @map("updated_at")
+  userId     BigInt?  @map("user_id")
 
   user User? @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -92,13 +92,13 @@ model OtpVerification {
 }
 
 model PersonalAccessToken {
-  id        BigInt    @id @default(autoincrement())
-  userId    BigInt    @map("user_id")
-  token     String    @db.Text
-  expiresAt DateTime  @map("expires_at")
-  status    Int       @default(0) @db.SmallInt // 0: ACTIVE, 1: EXPIRED/REVOKED
-  createdAt DateTime  @default(now()) @map("created_at")
-  updatedAt DateTime  @default(now()) @updatedAt @map("updated_at")
+  id        BigInt   @id @default(autoincrement())
+  userId    BigInt   @map("user_id")
+  token     String   @db.Text
+  expiresAt DateTime @map("expires_at")
+  status    Int      @default(0) @db.SmallInt // 0: ACTIVE, 1: EXPIRED/REVOKED
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at")
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -108,15 +108,15 @@ model PersonalAccessToken {
 }
 
 model Role {
-  id         BigInt           @id @default(autoincrement())
-  code       String           @unique // ADMIN, SELLER_ADMIN, CATALOG_ADMIN, etc.
+  id         BigInt    @id @default(autoincrement())
+  code       String    @unique // ADMIN, SELLER_ADMIN, CATALOG_ADMIN, etc.
   name       String
-  scopeType  String           @default("GLOBAL") @map("scope_type") // GLOBAL, SELLER
-  status     Int              @default(0) @db.SmallInt // 0: active, 1: inactive
-  softDelete Int              @default(0) @map("soft_delete") @db.SmallInt // 0: false, 1: true
-  createdAt  DateTime         @default(now()) @map("created_at")
-  updatedAt  DateTime         @default(now()) @updatedAt @map("updated_at")
-  deletedAt  DateTime?        @map("deleted_at")
+  scopeType  String    @default("GLOBAL") @map("scope_type") // GLOBAL, SELLER
+  status     Int       @default(0) @db.SmallInt // 0: active, 1: inactive
+  softDelete Int       @default(0) @map("soft_delete") @db.SmallInt // 0: false, 1: true
+  createdAt  DateTime  @default(now()) @map("created_at")
+  updatedAt  DateTime  @default(now()) @updatedAt @map("updated_at")
+  deletedAt  DateTime? @map("deleted_at")
 
   userRoles       UserRole[]
   rolePermissions RolePermission[]
@@ -125,14 +125,14 @@ model Role {
 }
 
 model Permission {
-  id          BigInt           @id @default(autoincrement())
-  code        String           @unique // seller.read, seller.approve, catalog.create, etc.
+  id          BigInt    @id @default(autoincrement())
+  code        String    @unique // seller.read, seller.approve, catalog.create, etc.
   description String?
-  status      Int              @default(0) @db.SmallInt // 0: active, 1: inactive
-  softDelete  Int              @default(0) @map("soft_delete") @db.SmallInt // 0: false, 1: true
-  createdAt   DateTime         @default(now()) @map("created_at")
-  updatedAt   DateTime         @default(now()) @updatedAt @map("updated_at")
-  deletedAt   DateTime?        @map("deleted_at")
+  status      Int       @default(0) @db.SmallInt // 0: active, 1: inactive
+  softDelete  Int       @default(0) @map("soft_delete") @db.SmallInt // 0: false, 1: true
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @default(now()) @updatedAt @map("updated_at")
+  deletedAt   DateTime? @map("deleted_at")
 
   rolePermissions RolePermission[]
 
@@ -321,18 +321,18 @@ model SellerBankAccount {
 }
 
 model SellerOnboardingEvent {
-  id         BigInt    @id @default(autoincrement())
-  sellerId   BigInt    @map("seller_id")
-  eventType  String    @map("event_type") // SUBMITTED, REVIEW_STARTED, APPROVED, REJECTED, CORRECTION_REQUESTED
-  oldStatus  String?   @map("old_status")
-  newStatus  String    @map("new_status")
-  actorId    BigInt?   @map("actor_id")
-  reason     String?
-  status     Int       @default(0) @db.SmallInt // 0: active, 1: inactive
-  softDelete Int       @default(0) @map("soft_delete") @db.SmallInt // 0: false, 1: true
-  createdAt  DateTime  @default(now()) @map("created_at")
-  updatedAt  DateTime  @default(now()) @updatedAt @map("updated_at")
-  deletedAt  DateTime? @map("deleted_at")
+  id          BigInt    @id @default(autoincrement())
+  sellerId    BigInt    @map("seller_id")
+  eventType   String    @map("event_type") // SUBMITTED, REVIEW_STARTED, APPROVED, REJECTED, CORRECTION_REQUESTED
+  oldStatus   String?   @map("old_status")
+  newStatus   String    @map("new_status")
+  performedBy BigInt?   @map("performed_by")
+  reason      String?
+  status      Int       @default(0) @db.SmallInt // 0: active, 1: inactive
+  softDelete  Int       @default(0) @map("soft_delete") @db.SmallInt // 0: false, 1: true
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @default(now()) @updatedAt @map("updated_at")
+  deletedAt   DateTime? @map("deleted_at")
 
   seller Seller @relation(fields: [sellerId], references: [id], onDelete: Cascade)
 
@@ -340,64 +340,162 @@ model SellerOnboardingEvent {
 }
 
 // ==========================================
-// 3. Taxonomy & Brand Governance
+// 3. Taxonomy, Domains, Departments, Categories & Sizes
 // ==========================================
 
-model Department {
-  id         BigInt     @id @default(autoincrement())
-  name       String     @db.VarChar(120)
-  slug       String     @unique @db.VarChar(140)
-  sortOrder  Int        @default(0) @map("sort_order")
-  imageKey   String?    @map("image_key")
-  status     Int        @default(0) @db.SmallInt // 0: active, 1: inactive
-  softDelete Int        @default(0) @map("soft_delete") @db.SmallInt // 0: false, 1: true
-  createdAt  DateTime   @default(now()) @map("created_at")
-  updatedAt  DateTime   @default(now()) @updatedAt @map("updated_at")
-  deletedAt  DateTime?  @map("deleted_at")
+model Domain {
+  id          BigInt    @id @default(autoincrement())
+  name        String    @db.VarChar(120) // Fashion, Beauty, Home & Living, Electronics
+  slug        String    @unique @db.VarChar(140)
+  code        String?   @unique @db.VarChar(50) // FASHION, BEAUTY, HOME_LIVING, ELECTRONICS
+  description String?   @db.Text
+  icon        String?   @db.VarChar(100)
+  imageKey    String?   @map("image_key")
+  sortOrder   Int       @default(0) @map("sort_order")
+  status      Int       @default(0) @db.SmallInt // 0: active, 1: inactive
+  softDelete  Int       @default(0) @map("soft_delete") @db.SmallInt // 0: false, 1: true
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @default(now()) @updatedAt @map("updated_at")
+  deletedAt   DateTime? @map("deleted_at")
 
+  departments Department[]
+  categories  Category[]
+  sizeGroups  SizeGroup[]
+
+  @@map("domains")
+}
+
+model Department {
+  id         BigInt    @id @default(autoincrement())
+  domainId   BigInt?   @map("domain_id")
+  name       String    @db.VarChar(120) // Men, Women, Kids (for Fashion)
+  slug       String    @unique @db.VarChar(140)
+  code       String?   @db.VarChar(50) // MEN, WOMEN, KIDS
+  sortOrder  Int       @default(0) @map("sort_order")
+  imageKey   String?   @map("image_key")
+  status     Int       @default(0) @db.SmallInt // 0: active, 1: inactive
+  softDelete Int       @default(0) @map("soft_delete") @db.SmallInt // 0: false, 1: true
+  createdAt  DateTime  @default(now()) @map("created_at")
+  updatedAt  DateTime  @default(now()) @updatedAt @map("updated_at")
+  deletedAt  DateTime? @map("deleted_at")
+
+  domain     Domain?    @relation(fields: [domainId], references: [id])
   categories Category[]
 
+  @@index([domainId])
   @@map("departments")
 }
 
 model Category {
-  id           BigInt     @id @default(autoincrement())
-  departmentId BigInt?    @map("department_id")
-  parentId     BigInt?    @map("parent_id")
-  name         String     @db.VarChar(150)
-  slug         String     @db.VarChar(170)
-  level        Int        @default(1) @db.SmallInt // 1=Domain/Root, 2=Category, 3=Subcategory
-  sortOrder    Int        @default(0) @map("sort_order")
-  status       Int        @default(0) @db.SmallInt // 0: active, 1: inactive
-  softDelete   Int        @default(0) @map("soft_delete") @db.SmallInt // 0: false, 1: true
-  createdAt    DateTime   @default(now()) @map("created_at")
-  updatedAt    DateTime   @default(now()) @updatedAt @map("updated_at")
-  deletedAt    DateTime?  @map("deleted_at")
+  id           BigInt    @id @default(autoincrement())
+  domainId     BigInt?   @map("domain_id")
+  departmentId BigInt?   @map("department_id")
+  parentId     BigInt?   @map("parent_id")
+  name         String    @db.VarChar(150)
+  slug         String    @db.VarChar(170)
+  level        Int       @default(1) @db.SmallInt // 1=Category, 2=Subcategory, 3=Leaf
+  sortOrder    Int       @default(0) @map("sort_order")
+  imageKey     String?   @map("image_key")
+  status       Int       @default(0) @db.SmallInt // 0: active, 1: inactive
+  softDelete   Int       @default(0) @map("soft_delete") @db.SmallInt // 0: false, 1: true
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @default(now()) @updatedAt @map("updated_at")
+  deletedAt    DateTime? @map("deleted_at")
 
-  department   Department? @relation(fields: [departmentId], references: [id])
-  parent       Category?   @relation("CategoryHierarchy", fields: [parentId], references: [id])
-  children     Category[]  @relation("CategoryHierarchy")
+  domain     Domain?     @relation(fields: [domainId], references: [id])
+  department Department? @relation(fields: [departmentId], references: [id])
+  parent     Category?   @relation("CategoryHierarchy", fields: [parentId], references: [id])
+  children   Category[]  @relation("CategoryHierarchy")
 
   catalogProducts  CatalogProduct[]
   sellerCategories SellerCategory[]
   categoryRequests CategoryRequest[]
+  categorySizes    CategorySize[]
 
-  @@unique([departmentId, parentId, slug])
+  @@unique([domainId, departmentId, parentId, slug])
+  @@index([domainId])
+  @@index([departmentId])
+  @@index([parentId])
   @@map("categories")
 }
 
+model SizeGroup {
+  id          BigInt    @id @default(autoincrement())
+  domainId    BigInt?   @map("domain_id")
+  name        String    @db.VarChar(120) // Apparel Standard, Bottomwear (Waist), Footwear UK, Kids Age, Free Size
+  code        String    @unique @db.VarChar(60) // APPAREL_STANDARD, BOTTOMWEAR_WAIST, FOOTWEAR_UK, KIDS_AGE, FREE_SIZE
+  description String?   @db.Text
+  sortOrder   Int       @default(0) @map("sort_order")
+  status      Int       @default(0) @db.SmallInt // 0: active, 1: inactive
+  softDelete  Int       @default(0) @map("soft_delete") @db.SmallInt // 0: false, 1: true
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @default(now()) @updatedAt @map("updated_at")
+  deletedAt   DateTime? @map("deleted_at")
+
+  domain        Domain?        @relation(fields: [domainId], references: [id])
+  sizes         Size[]
+  categorySizes CategorySize[]
+
+  @@index([domainId])
+  @@map("size_groups")
+}
+
+model Size {
+  id          BigInt    @id @default(autoincrement())
+  sizeGroupId BigInt    @map("size_group_id")
+  name        String    @db.VarChar(60) // XS, S, M, L, XL, 28, 30, UK 7
+  code        String    @db.VarChar(60) // XS, S, M, L, XL, 28, 30, UK-7
+  description String?   @db.VarChar(150)
+  sortOrder   Int       @default(0) @map("sort_order")
+  status      Int       @default(0) @db.SmallInt // 0: active, 1: inactive
+  softDelete  Int       @default(0) @map("soft_delete") @db.SmallInt // 0: false, 1: true
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @default(now()) @updatedAt @map("updated_at")
+  deletedAt   DateTime? @map("deleted_at")
+
+  sizeGroup       SizeGroup        @relation(fields: [sizeGroupId], references: [id], onDelete: Cascade)
+  categorySizes   CategorySize[]
+  productVariants ProductVariant[]
+
+  @@unique([sizeGroupId, code])
+  @@index([sizeGroupId])
+  @@map("sizes")
+}
+
+model CategorySize {
+  id          BigInt   @id @default(autoincrement())
+  categoryId  BigInt   @map("category_id")
+  sizeGroupId BigInt?  @map("size_group_id")
+  sizeId      BigInt?  @map("size_id")
+  isDefault   Boolean  @default(false) @map("is_default")
+  sortOrder   Int      @default(0) @map("sort_order")
+  status      Int      @default(0) @db.SmallInt // 0: active, 1: inactive
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @default(now()) @updatedAt @map("updated_at")
+
+  category  Category   @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  sizeGroup SizeGroup? @relation(fields: [sizeGroupId], references: [id], onDelete: Cascade)
+  size      Size?      @relation(fields: [sizeId], references: [id], onDelete: Cascade)
+
+  @@unique([categoryId, sizeGroupId, sizeId])
+  @@index([categoryId])
+  @@index([sizeGroupId])
+  @@index([sizeId])
+  @@map("category_sizes")
+}
+
 model Brand {
-  id                 BigInt     @id @default(autoincrement())
-  name               String     @db.VarChar(150)
-  slug               String     @unique @db.VarChar(170)
-  logoKey            String?    @map("logo_key")
+  id                 BigInt    @id @default(autoincrement())
+  name               String    @db.VarChar(150)
+  slug               String    @unique @db.VarChar(170)
+  logoKey            String?   @map("logo_key")
   description        String?
-  verificationStatus String     @default("VERIFIED") @map("verification_status") @db.VarChar(20) // PENDING, VERIFIED, REJECTED
-  status             Int        @default(0) @db.SmallInt // 0: active, 1: inactive
-  softDelete         Int        @default(0) @map("soft_delete") @db.SmallInt // 0: false, 1: true
-  createdAt          DateTime   @default(now()) @map("created_at")
-  updatedAt          DateTime   @default(now()) @updatedAt @map("updated_at")
-  deletedAt          DateTime?  @map("deleted_at")
+  verificationStatus String    @default("VERIFIED") @map("verification_status") @db.VarChar(20) // PENDING, VERIFIED, REJECTED
+  status             Int       @default(0) @db.SmallInt // 0: active, 1: inactive
+  softDelete         Int       @default(0) @map("soft_delete") @db.SmallInt // 0: false, 1: true
+  createdAt          DateTime  @default(now()) @map("created_at")
+  updatedAt          DateTime  @default(now()) @updatedAt @map("updated_at")
+  deletedAt          DateTime? @map("deleted_at")
 
   catalogProducts CatalogProduct[]
   sellerBrands    SellerBrand[]
@@ -515,6 +613,7 @@ model CatalogProduct {
 model ProductVariant {
   id               BigInt    @id @default(autoincrement())
   catalogProductId BigInt    @map("catalog_product_id")
+  sizeId           BigInt?   @map("size_id")
   variantCode      String    @map("variant_code") @db.VarChar(120)
   barcode          String?   @db.VarChar(80)
   attributes       Json      @default("{}") // size, color, shade, pack_size, etc.
@@ -525,9 +624,11 @@ model ProductVariant {
   deletedAt        DateTime? @map("deleted_at")
 
   catalogProduct CatalogProduct  @relation(fields: [catalogProductId], references: [id], onDelete: Cascade)
+  size           Size?           @relation(fields: [sizeId], references: [id])
   sellerListings SellerListing[]
 
   @@unique([catalogProductId, variantCode])
+  @@index([sizeId])
   @@map("product_variants")
 }
 

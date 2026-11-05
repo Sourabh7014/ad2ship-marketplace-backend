@@ -94,8 +94,9 @@ export class SellerAuthService {
         data: {
           sellerId: seller.id,
           eventType: 'REGISTERED',
-          newStatus: 'DRAFT',
-          actorId: user.id,
+          oldStatus: null,
+          newStatus: String(SellerOnboardingStatus.DRAFT),
+          performedBy: user.id,
           reason: 'Seller account registered',
         },
       });

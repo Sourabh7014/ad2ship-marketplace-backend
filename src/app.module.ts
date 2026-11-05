@@ -5,6 +5,7 @@ import { AppService } from './app.service';
 import { DatabaseModule } from './database/database.module';
 import { SellerAuthModule } from './modules/seller/auth/auth.module';
 import { SellerKycModule } from './modules/seller/kyc/kyc.module';
+import { TaxonomyModule } from './modules/seller/taxonomy/taxonomy.module';
 import { UserModule } from './modules/user/user.module';
 
 @Module({
@@ -13,6 +14,7 @@ import { UserModule } from './modules/user/user.module';
     DatabaseModule,
     SellerAuthModule,
     SellerKycModule,
+    TaxonomyModule,
     UserModule,
   ],
   controllers: [AppController],

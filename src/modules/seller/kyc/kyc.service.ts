@@ -202,35 +202,74 @@ export class SellerKycService {
       throw new NotFoundException('Seller not found');
     }
 
-    // Save as SellerAddress (PICKUP/WAREHOUSE)
-    const address = await this.prisma.sellerAddress.create({
-      data: {
+    // Save or update SellerAddress (PICKUP/WAREHOUSE)
+    const existingAddress = await this.prisma.sellerAddress.findFirst({
+      where: {
         sellerId: BigInt(sellerId),
         addressType: 'WAREHOUSE',
-        warehouseName: dto.warehouseName || `${seller.displayName} Primary Hub`,
-        contactPerson: dto.contactPerson,
-        contactPhone: dto.contactPhone,
-        addressLine1: dto.addressLine1,
-        addressLine2: dto.addressLine2 || null,
-        city: dto.city,
-        state: dto.state,
-        pincode: dto.pincode,
-        country: dto.country || 'IN',
-        isDefault: dto.isDefault ?? true,
       },
     });
 
-    // Also ensure a Warehouse record exists
-    const code = `WH-${seller.slug.toUpperCase()}-${Date.now().toString().slice(-4)}`;
-    await this.prisma.warehouse.create({
-      data: {
-        sellerId: BigInt(sellerId),
-        name: `${seller.displayName} Primary Warehouse`,
-        code,
-        status: 0,
-        softDelete: 0,
-      },
+    let address;
+    if (existingAddress) {
+      address = await this.prisma.sellerAddress.update({
+        where: { id: existingAddress.id },
+        data: {
+          warehouseName: dto.warehouseName || `${seller.displayName} Primary Hub`,
+          contactPerson: dto.contactPerson,
+          contactPhone: dto.contactPhone,
+          addressLine1: dto.addressLine1,
+          addressLine2: dto.addressLine2 || null,
+          city: dto.city,
+          state: dto.state,
+          pincode: dto.pincode,
+          country: dto.country || 'IN',
+          isDefault: dto.isDefault ?? true,
+        },
+      });
+    } else {
+      address = await this.prisma.sellerAddress.create({
+        data: {
+          sellerId: BigInt(sellerId),
+          addressType: 'WAREHOUSE',
+          warehouseName: dto.warehouseName || `${seller.displayName} Primary Hub`,
+          contactPerson: dto.contactPerson,
+          contactPhone: dto.contactPhone,
+          addressLine1: dto.addressLine1,
+          addressLine2: dto.addressLine2 || null,
+          city: dto.city,
+          state: dto.state,
+          pincode: dto.pincode,
+          country: dto.country || 'IN',
+          isDefault: dto.isDefault ?? true,
+        },
+      });
+    }
+
+    // Also ensure Warehouse record is updated rather than creating duplicate
+    const existingWarehouse = await this.prisma.warehouse.findFirst({
+      where: { sellerId: BigInt(sellerId) },
     });
+
+    if (existingWarehouse) {
+      await this.prisma.warehouse.update({
+        where: { id: existingWarehouse.id },
+        data: {
+          name: `${seller.displayName} Primary Warehouse`,
+        },
+      });
+    } else {
+      const code = `WH-${seller.slug.toUpperCase()}-${Date.now().toString().slice(-4)}`;
+      await this.prisma.warehouse.create({
+        data: {
+          sellerId: BigInt(sellerId),
+          name: `${seller.displayName} Primary Warehouse`,
+          code,
+          status: 0,
+          softDelete: 0,
+        },
+      });
+    }
 
     return {
       message: 'Pickup / Warehouse address saved successfully',
@@ -332,7 +371,7 @@ export class SellerKycService {
     };
   }
 
-  async submitKyc(sellerId: string, actorId: string) {
+  async submitKyc(sellerId: string, performedById: string) {
     const status = await this.getStatus(sellerId);
     if (!status.checklist.readyToSubmit) {
       throw new BadRequestException(
@@ -356,16 +395,35 @@ export class SellerKycService {
       },
     });
 
-    await this.prisma.sellerOnboardingEvent.create({
-      data: {
-        sellerId: BigInt(sellerId),
-        eventType: 'KYC_SUBMITTED',
-        oldStatus: String(oldStatus),
-        newStatus: 'SUBMITTED',
-        actorId: BigInt(actorId),
-        reason: 'Seller submitted KYC documents for admin verification',
-      },
+    // Update existing onboarding event for this seller instead of creating a second row
+    const existingEvent = await this.prisma.sellerOnboardingEvent.findFirst({
+      where: { sellerId: BigInt(sellerId) },
+      orderBy: { id: 'desc' },
     });
+
+    if (existingEvent) {
+      await this.prisma.sellerOnboardingEvent.update({
+        where: { id: existingEvent.id },
+        data: {
+          eventType: 'KYC_SUBMITTED',
+          oldStatus: String(oldStatus),
+          newStatus: String(SellerOnboardingStatus.SUBMITTED),
+          performedBy: BigInt(performedById),
+          reason: 'Seller submitted KYC documents for admin verification',
+        },
+      });
+    } else {
+      await this.prisma.sellerOnboardingEvent.create({
+        data: {
+          sellerId: BigInt(sellerId),
+          eventType: 'KYC_SUBMITTED',
+          oldStatus: String(oldStatus),
+          newStatus: String(SellerOnboardingStatus.SUBMITTED),
+          performedBy: BigInt(performedById),
+          reason: 'Seller submitted KYC documents for admin verification',
+        },
+      });
+    }
 
     return {
       message: 'KYC submitted successfully. Admin review is pending.',

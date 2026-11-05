@@ -1,13 +1,14 @@
 import { PrismaClient } from '@prisma/client';
 import process from 'node:process';
+import { seedTaxonomyAndSizes } from './seed_taxonomy';
 
 const prisma = new PrismaClient();
 
 async function main() {
-  console.log('Seeding initial marketplace taxonomy and roles...');
+  console.log('Seeding initial marketplace roles, permissions, brands, taxonomy and sizes...');
 
   // 1. Roles
-  const adminRole = await prisma.role.upsert({
+  await prisma.role.upsert({
     where: { code: 'ADMIN' },
     update: {},
     create: {
@@ -17,7 +18,7 @@ async function main() {
     },
   });
 
-  const sellerRole = await prisma.role.upsert({
+  await prisma.role.upsert({
     where: { code: 'SELLER_ADMIN' },
     update: {},
     create: {
@@ -47,31 +48,14 @@ async function main() {
     });
   }
 
-  // 3. Departments (Fashion uses Men, Women, Kids per Blueprint §3)
-  const menDept = await prisma.department.upsert({
-    where: { slug: 'fashion-men' },
-    update: {},
-    create: { name: 'Men', slug: 'fashion-men', sortOrder: 1 },
-  });
-
-  const womenDept = await prisma.department.upsert({
-    where: { slug: 'fashion-women' },
-    update: {},
-    create: { name: 'Women', slug: 'fashion-women', sortOrder: 2 },
-  });
-
-  const kidsDept = await prisma.department.upsert({
-    where: { slug: 'fashion-kids' },
-    update: {},
-    create: { name: 'Kids', slug: 'fashion-kids', sortOrder: 3 },
-  });
-
-  // 4. Sample Brands (Blueprint §3 & §4)
+  // 3. Brands (Blueprint Section 3 & 4)
   const brands = [
     { name: 'Nike', slug: 'nike', description: 'Global athletic footwear and apparel' },
     { name: 'Puma', slug: 'puma', description: 'Sportstyle apparel and footwear' },
     { name: 'Lakmé', slug: 'lakme', description: 'Indian cosmetics and skincare' },
     { name: 'Samsung', slug: 'samsung', description: 'Consumer electronics and smartphones' },
+    { name: 'Boat', slug: 'boat', description: 'Consumer audio and wearables' },
+    { name: 'Zara', slug: 'zara', description: 'Global fast fashion apparel' },
   ];
 
   for (const b of brands) {
@@ -89,15 +73,17 @@ async function main() {
     });
   }
 
-  console.log('Seed completed successfully!');
+  // 4. Domains, Departments, Categories, Size Groups & Sizes
+  await seedTaxonomyAndSizes();
+
+  console.log('✅ Entire seed completed successfully!');
 }
 
 main()
   .catch((e) => {
-    console.error(e);
+    console.error('Seed execution error:', e);
     process.exit(1);
   })
   .finally(async () => {
     await prisma.$disconnect();
   });
-
